@@ -176,9 +176,7 @@ function downloadFile(fileName, url, callback1) {
     	  }
         } catch(e) {
             console.log('Error: ' + e);
-            downloadFile(fileName, url, function() {
-             callback1();
-            });
+            callback1();
         }
 	})();
 
@@ -187,29 +185,27 @@ function downloadFile(fileName, url, callback1) {
 
 function uploadZoho(day, month, year, fileName, callback1) {
 
-	var form = new FormData();
+    var form = new FormData();
 
-  form.append('content', fs.createReadStream(fileName), {
+    form.append('content', fs.createReadStream(fileName), {
     filename: `imi_stats_for_${year}-${month}-${day}.csv`,
     contentType: 'application/vnd.ms-excel'
-  });
-
-  form.append('file', 'import');
-	form.append('mode', 'url');
-	form.append('proxyURL', 'viewer');
-
-	axios.post('https://sheet.zoho.com/sheet/view.do', form, {
-	  headers: form.getHeaders(),
-	}).then(result => {
-	  console.log(result.data);
-	  bot.sendMessage(chatIdImon, 'Stat for ' + `${year}-${month}-${day}` + " \n" + result.data);
-	  callback1();
-	})
-	.catch(error => {
-    console.error('Upload failed:');
-    uploadZoho(day, month, year, fileName, function() {
-    	callback1();
     });
-  });
+
+    form.append('file', 'import');
+    form.append('mode', 'url');
+    form.append('proxyURL', 'viewer');
+
+    axios.post('https://sheet.zoho.com/sheet/view.do', form, {
+      headers: form.getHeaders(),
+    }).then(result => {
+      console.log(result.data);
+      bot.sendMessage(chatIdImon, 'Stat for ' + `${year}-${month}-${day}` + " \n" + result.data);
+      callback1();
+    })
+    .catch(error => {
+        console.error('Upload failed:');
+        callback1();
+    });
 
 }
