@@ -40,11 +40,14 @@ var dayYesterday  = dateYesterday.getDate();
 
 var urlToday = `https://imonetizeit.com/partner/statistics/get?type=csv&is_offer=0&filter%5BcampaignId%5D=all&filter%5Bvertical%5D=0&filter%5Butc%5D=%2B03%3A00&filter%5BdateFrom%5D=${yearToday}-${monthToday}-${dayToday}&filter%5BdateTo%5D=${yearToday}-${monthToday}-${dayToday}&filter%5BgroupBy%5D=total&filter%5BsubId1%5D=0&filter%5BsubId2%5D=0&filter%5BshowGraph%5D=0&filter%5Binclude_archive%5D=1&filter%5Bcreative%5D=0&filter%5Bmain%5D%5B%5D=campaign_name&filter%5Bmain%5D%5B%5D=country_iso3&filter%5Btab%5D=campaign_name`;
 var urlYesterday = `https://imonetizeit.com/partner/statistics/get?type=csv&is_offer=0&filter%5BcampaignId%5D=all&filter%5Bvertical%5D=0&filter%5Butc%5D=%2B03%3A00&filter%5BdateFrom%5D=${yearYesterday}-${monthYesterday}-${dayYesterday}&filter%5BdateTo%5D=${yearYesterday}-${monthYesterday}-${dayYesterday}&filter%5BgroupBy%5D=total&filter%5BsubId1%5D=0&filter%5BsubId2%5D=0&filter%5BshowGraph%5D=0&filter%5Binclude_archive%5D=1&filter%5Bcreative%5D=0&filter%5Bmain%5D%5B%5D=campaign_name&filter%5Bmain%5D%5B%5D=country_iso3&filter%5Btab%5D=campaign_name`;
+var zohoToday;
+var zohoYesterday;
+var msgID;
 
 var checkToday = false;
 var checkYesterday = false;
 
-new CronJob('0 */30 * * * *', function() { // Every 30 min
+new CronJob('0 */5 * * * *', function() { // Every 30 min
 
     async.doWhilst(
      function(callback2) {
@@ -59,6 +62,14 @@ new CronJob('0 */30 * * * *', function() { // Every 30 min
 				dayToday  = dateToday.getDate();
 				dayToday = (dayToday < 10 ? "0" : "") + dayToday;
 
+                dateYesterday = new Date();
+                dateYesterday.setDate(dateToday.getDate() - 1);
+                yearYesterday = dateYesterday.getFullYear();
+                monthYesterday = dateYesterday.getMonth() + 1;
+                monthYesterday = (monthYesterday < 10 ? "0" : "") + monthYesterday;
+                dayYesterday  = dateYesterday.getDate();
+                dayYesterday = (dayYesterday < 10 ? "0" : "") + dayYesterday;
+
 				callback(null);
 			},
 			function(callback) { // Download today stat
@@ -68,13 +79,54 @@ new CronJob('0 */30 * * * *', function() { // Every 30 min
 					callback(null);
 				});
 			},
+            function(callback) { // Download yesterday stat
+
+                var fileName = 'imi_stats_export_yesterday.csv';
+                downloadFile(fileName, urlYesterday, function(check) { 
+                    checkYesterday = check;
+                    callback(null);
+                });
+
+            },
 			function(callback) { // Upload today stat
 				var fileName = 'imi_stats_export_today.csv';
-				uploadZoho(dayToday, monthToday, yearToday, fileName, function(check) {
+				uploadZoho(dayToday, monthToday, yearToday, fileName, function(check, zoho) {
                     checkToday = check;
+                    zohoToday = zoho;
 					callback(null);
 				});
 			},
+            function(callback) { // Upload yesterday stat
+
+                var fileName = 'imi_stats_export_yesterday.csv';
+                uploadZoho(dayYesterday, monthYesterday, yearYesterday, fileName, function(check, zoho) {
+                    checkYesterday = check;
+                    zohoYesterday = zoho;
+                    callback(null);
+                });
+
+            },
+            function(callback) { // Send message
+                if (!checkToday && !checkYesterday) {
+                    var options = {
+                      reply_markup: JSON.stringify({
+                        inline_keyboard: [
+                          [{ text: '💰 СТАТИСТИКА ЗА ВЧЕРА', callback_data: zohoYesterday }],
+                          [{ text: '💰 СТАТИСТИКА ЗА СЕГОДНЯ', callback_data: zohoToday }]
+                        ]
+                      })
+                    };
+                    bot.deleteMessage(chatIdImon, msgID);
+                    bot.sendMessage(chatIdImon, options).then(function (sender) {
+                        msgID = sender.message_id;
+                    });
+
+                    callback(null);
+                } else {
+                    callback(null);
+                }
+
+            },
 			function(callback) {
 					callback(null, 'End');
 				}
@@ -85,65 +137,12 @@ new CronJob('0 */30 * * * *', function() { // Every 30 min
 			});
          },
      function() {    
-             return checkToday; 
+             return (checkToday && checkYesterday); 
      },
      function (err, result) {
          console.log('END CYCLE');
      }
     );
-
-}, null, true, 'Europe/Moscow');
-
-new CronJob('0 0 9 * * *', function() { // Every 9 morning o'clock
-    async.doWhilst(
-     function(callback2) {
-
-        async.waterfall([
-            function(callback) { // Update date
-
-                dateYesterday = new Date();
-                dateYesterday.setDate(dateToday.getDate() - 1);
-                yearYesterday = dateYesterday.getFullYear();
-                monthYesterday = dateYesterday.getMonth() + 1;
-                monthYesterday = (monthYesterday < 10 ? "0" : "") + monthYesterday;
-                dayYesterday  = dateYesterday.getDate();
-                dayYesterday = (dayYesterday < 10 ? "0" : "") + dayYesterday;
-
-                callback(null);
-            },
-            function(callback) { // Download yesterday stat
-
-                var fileName = 'imi_stats_export_yesterday.csv';
-                downloadFile(fileName, urlYesterday, function(check) { 
-                    checkYesterday = check;
-                    callback(null);
-                });
-
-            },
-            function(callback) { // Upload yesterday stat
-
-                var fileName = 'imi_stats_export_yesterday.csv';
-                uploadZoho(dayYesterday, monthYesterday, yearYesterday, fileName, function(check) {
-                    checkYesterday = check;
-                    callback(null);
-                });
-
-            },
-            function(callback) {
-                    callback(null, 'End');
-                }
-            ],
-            function(err, result) {
-                console.log('END POST YESTERDAY STAT');
-            });
-        },
-         function() {    
-                 return checkYesterday; 
-         },
-         function (err, result) {
-             console.log('END CYCLE');
-         }
-        );
 
 }, null, true, 'Europe/Moscow');
 
@@ -225,12 +224,11 @@ function uploadZoho(day, month, year, fileName, callback1) {
       headers: form.getHeaders(),
     }).then(result => {
       console.log(result.data);
-      bot.sendMessage(chatIdImon, 'Stat for ' + `${year}-${month}-${day}` + " \n" + result.data);
-      callback1(false);
+      callback1(false, result.data);
     })
     .catch(error => {
         console.error('Upload failed:');
-        callback1(true);
+        callback1(true, "");
     });
 
 }
