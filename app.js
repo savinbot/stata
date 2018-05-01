@@ -42,7 +42,7 @@ var urlToday = `https://imonetizeit.com/partner/statistics/get?type=csv&is_offer
 var urlYesterday = `https://imonetizeit.com/partner/statistics/get?type=csv&is_offer=0&filter%5BcampaignId%5D=all&filter%5Bvertical%5D=0&filter%5Butc%5D=%2B03%3A00&filter%5BdateFrom%5D=${yearYesterday}-${monthYesterday}-${dayYesterday}&filter%5BdateTo%5D=${yearYesterday}-${monthYesterday}-${dayYesterday}&filter%5BgroupBy%5D=total&filter%5BsubId1%5D=0&filter%5BsubId2%5D=0&filter%5BshowGraph%5D=0&filter%5Binclude_archive%5D=1&filter%5Bcreative%5D=0&filter%5Bmain%5D%5B%5D=campaign_name&filter%5Bmain%5D%5B%5D=country_iso3&filter%5Btab%5D=campaign_name`;
 var zohoToday;
 var zohoYesterday;
-var msgID;
+var msgID = "";
 
 var checkToday = false;
 var checkYesterday = false;
@@ -116,7 +116,9 @@ new CronJob('0 */5 * * * *', function() { // Every 30 min
                         ]
                       })
                     };
-                    bot.deleteMessage(chatIdImon, msgID);
+                    if (msgID != "") {
+                        bot.deleteMessage(chatIdImon, msgID);
+                    }
                     bot.sendMessage(chatIdImon, "Статистика:" ,options).then(sender => {
                         msgID = sender.message_id;
                     });
@@ -137,7 +139,7 @@ new CronJob('0 */5 * * * *', function() { // Every 30 min
 			});
          },
      function() {    
-             return (checkToday && checkYesterday); 
+             return (checkToday || checkYesterday); 
      },
      function (err, result) {
          console.log('END CYCLE');
