@@ -5,7 +5,7 @@ HI! I'll help you make a telegram bot for iMonetizeIt.
 This bot:
 1. Donwload .csv statistic for today/yesterday
 2. Upload stat on Zoho sheets
-3. Drop link in chat (today - every 30 min, yesterday - every 9:00 o'clock)
+3. Drop link in chat (today/yesterday - every 30 min)
 
 
 How install:
