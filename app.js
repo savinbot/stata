@@ -111,13 +111,13 @@ new CronJob('0 */5 * * * *', function() { // Every 30 min
                     var options = {
                       reply_markup: JSON.stringify({
                         inline_keyboard: [
-                          [{ text: 'СТАТИСТИКА ЗА ВЧЕРА', url: zohoYesterday }],
-                          [{ text: 'СТАТИСТИКА ЗА СЕГОДНЯ', url: zohoToday }]
+                          [{ text: '💰 ЗА ВЧЕРА', url: zohoYesterday }],
+                          [{ text: '💰 ЗА СЕГОДНЯ', url: zohoToday }]
                         ]
                       })
                     };
-                    //bot.deleteMessage(chatIdImon, msgID);
-                    bot.sendMessage(chatIdImon, "Click" ,options).then(sender => {
+                    bot.deleteMessage(chatIdImon, msgID);
+                    bot.sendMessage(chatIdImon, "Статистика:" ,options).then(sender => {
                         msgID = sender.message_id;
                     });
 
