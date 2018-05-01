@@ -111,8 +111,8 @@ new CronJob('0 */5 * * * *', function() { // Every 30 min
                     var options = {
                       reply_markup: JSON.stringify({
                         inline_keyboard: [
-                          [{ text: '💰 СТАТИСТИКА ЗА ВЧЕРА', callback_data: zohoYesterday }],
-                          [{ text: '💰 СТАТИСТИКА ЗА СЕГОДНЯ', callback_data: zohoToday }]
+                          [{ text: 'СТАТИСТИКА ЗА ВЧЕРА', callback_data: zohoYesterday }],
+                          [{ text: 'СТАТИСТИКА ЗА СЕГОДНЯ', callback_data: zohoToday }]
                         ]
                       })
                     };
