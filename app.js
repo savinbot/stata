@@ -47,7 +47,7 @@ var msgID = "";
 var checkToday = false;
 var checkYesterday = false;
 
-new CronJob('0 */5 * * * *', function() { // Every 30 min
+new CronJob('0 */30 * * * *', function() { // Every 30 min
 
     async.doWhilst(
      function(callback2) {
@@ -72,6 +72,13 @@ new CronJob('0 */5 * * * *', function() { // Every 30 min
 
 				callback(null);
 			},
+            function(callback) { // get cookies
+                getCookies(function(check) { 
+                    checkToday = check;
+                    checkYesterday = check;
+                    callback(null);
+                });
+            },
 			function(callback) { // Download today stat
 				var fileName = 'imi_stats_export_today.csv';
 				downloadFile(fileName, urlToday, function(check) { 
@@ -152,13 +159,51 @@ new CronJob('0 */5 * * * *', function() { // Every 30 min
 
 /* FUNCTIONS */
 
+function getCookies(callback1) {
+    (async () => {
+          var browser = await puppeteer.launch({
+                                  headless: true,
+                                  args: [
+                                    '--proxy-server="direct://"',
+                                    '--proxy-bypass-list=*',
+                                    '--no-sandbox', 
+                                    '--disable-setuid-sandbox'
+                                  ]
+                                });
+        try {
+          var page = await browser.newPage();
+
+          await page.goto('https://imonetizeit.com/site/login');
+          await page.waitForSelector('#LoginForm_email');
+          await page.focus('#LoginForm_email');
+          await page.type('#LoginForm_email', imon_login);
+          await page.focus('#LoginForm_password');
+          await page.type('#LoginForm_password', imon_pass);
+          await page.click('#login-form > div.form-row.form-row_button > div > input');
+          await page.waitForSelector('#calendarApply');
+
+          imon_cookies = await page.cookies();
+
+          await browser.close();
+          await main();
+          function main() {
+            callback1(false);
+          }
+        } catch(e) {
+            console.log('Error get cookies: ' + e);
+            browser.close();
+            callback1(true);
+        }
+    })();
+}
+
 function downloadFile(fileName, url, callback1) {
 
 	console.log('Start download');
 
 	if(fs.existsSync(fileName)) {
-				fs.unlink(fileName);
-			}
+		fs.unlink(fileName);
+	}
 
 
 	(async () => {
@@ -173,16 +218,12 @@ function downloadFile(fileName, url, callback1) {
     							});
         try {
     	  var page = await browser.newPage();
-
     	  await page.goto('https://imonetizeit.com/site/login');
     	  await page.waitForSelector('#LoginForm_email');
-    	  await page.focus('#LoginForm_email');
-    	  await page.type('#LoginForm_email', imon_login);
-    	  await page.focus('#LoginForm_password');
-    	  await page.type('#LoginForm_password', imon_pass);
-    	  await page.click('#login-form > div.form-row.form-row_button > div > input');
+          await page.setCookie(...imon_cookies);
+          await page.reload();
+          await page.waitForSelector('#calendarApply');
 
-    	  imon_cookies = await page.cookies();
     	  var dataGet = await page.evaluate((url) => {
     						    var data = [];
     						    var xhr = new XMLHttpRequest();
