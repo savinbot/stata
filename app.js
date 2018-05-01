@@ -47,7 +47,7 @@ var msgID = "";
 var checkToday = false;
 var checkYesterday = false;
 
-new CronJob('0 */30 * * * *', function() { // Every 30 min
+new CronJob('0 */5 * * * *', function() { // Every 30 min
 
     async.doWhilst(
      function(callback2) {
