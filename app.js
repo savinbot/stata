@@ -116,8 +116,8 @@ new CronJob('0 */5 * * * *', function() { // Every 30 min
                         ]
                       })
                     };
-                    bot.deleteMessage(chatIdImon, msgID);
-                    bot.sendMessage(chatIdImon, options).then(function (sender) {
+                    //bot.deleteMessage(chatIdImon, msgID);
+                    bot.sendMessage(chatIdImon, "" ,options).then(function (sender) {
                         msgID = sender.message_id;
                     });
 
