@@ -55,7 +55,7 @@ var checkYesterdayGeo = false;
 var checkYesterday = false;
 
 new CronJob('0 */30 * * * *', function() { // Every 30 min
-
+  var iter = 0;
   async.doWhilst(
    function(callback2) {
 
@@ -192,11 +192,12 @@ new CronJob('0 */30 * * * *', function() { // Every 30 min
            ],
            function(err, result) {
             console.log('END POST TODAY STAT');
+	    iter++;
             callback2();
           });
 },
 function() {    
- return (checkToday || checkYesterday || checkYesterdayGeo || checkTodayGeo); 
+ return ((checkToday || checkYesterday || checkYesterdayGeo || checkTodayGeo) && (iter < 5)); 
 },
 function (err, result) {
  console.log('END CYCLE');
