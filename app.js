@@ -197,7 +197,7 @@ new CronJob('0 */30 * * * *', function() { // Every 30 min
           });
 },
 function() {    
- return ((checkToday || checkYesterday || checkYesterdayGeo || checkTodayGeo) && (iter < 5)); 
+ return ((checkToday || checkYesterday || checkYesterdayGeo || checkTodayGeo) && (iter < 3)); 
 },
 function (err, result) {
  console.log('END CYCLE');
